@@ -11,7 +11,7 @@
 # Prerequisites (droidtop-platforms' plugin bundle workflow provides them; prepare.sh installs Go):
 #   - kotlinc and d8 on PATH, PLUGIN_HOST_CLASSPATH (droidtop's :plugin-host classes) and ANDROID_JAR
 #   - go on PATH, at syncthing.pin's GO_VERSION
-#   - the Android NDK: ANDROID_NDK_HOME, or ANDROID_SDK_ROOT with NDK_VERSION
+#   - the Android NDK: ANDROID_SDK_ROOT with NDK_VERSION (the workflow's own NDK), else ANDROID_NDK_HOME
 #   - git, python3, zip, sha256sum
 set -euo pipefail
 cd "$(dirname "$0")"
@@ -20,7 +20,12 @@ cd "$(dirname "$0")"
 
 : "${PLUGIN_HOST_CLASSPATH:?set to a jar/dir containing dev.droidtop.pluginhost.* compiled classes}"
 : "${ANDROID_JAR:?set ANDROID_JAR to android.jar for the target compileSdk}"
-NDK="${ANDROID_NDK_HOME:-${ANDROID_SDK_ROOT:?set ANDROID_NDK_HOME or ANDROID_SDK_ROOT}/ndk/${NDK_VERSION:?set NDK_VERSION}}"
+# The runner image's own ANDROID_NDK_HOME names an NDK the workflow removed to free space, so the workflow's NDK first.
+if [ -n "${ANDROID_SDK_ROOT:-}" ] && [ -n "${NDK_VERSION:-}" ] && [ -d "$ANDROID_SDK_ROOT/ndk/$NDK_VERSION" ]; then
+  NDK="$ANDROID_SDK_ROOT/ndk/$NDK_VERSION"
+else
+  NDK="${ANDROID_NDK_HOME:?set ANDROID_SDK_ROOT with NDK_VERSION, or ANDROID_NDK_HOME}"
+fi
 TOOLCHAIN="$NDK/toolchains/llvm/prebuilt/linux-x86_64/bin"
 test -d "$TOOLCHAIN" || { echo "no NDK toolchain at $TOOLCHAIN" >&2; exit 1; }
 # Native libraries load in droidtop's plugin sandbox from Android 9 (docs/plugin-api.md 5.3), so API 28 is the floor.
