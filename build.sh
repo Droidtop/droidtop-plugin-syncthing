@@ -61,6 +61,9 @@ ldflags+=" -X github.com/syncthing/syncthing/lib/build.User=droidtop"
 ldflags+=" -X github.com/syncthing/syncthing/lib/build.Host=droidtop-plugin-syncthing"
 ldflags+=" -X github.com/syncthing/syncthing/lib/build.Tags=noupgrade,droidtop"
 ldflags+=" -extldflags=-Wl,-z,max-page-size=16384"
+# github.com/wlynxg/anet, Syncthing's interface lister on Android, reaches into the net package by go:linkname, which
+# Go 1.23 and later refuse unless the check is off (anet's README says the same).
+ldflags+=" -checklinkname=0"
 
 for target in arm64-v8a:arm64:aarch64-linux-android x86_64:amd64:x86_64-linux-android; do
   IFS=: read -r abi goarch triple <<< "$target"
