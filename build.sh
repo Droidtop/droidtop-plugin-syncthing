@@ -53,14 +53,15 @@ go version
 (cd build/upstream && SOURCE_DATE_EPOCH="$stamp" go generate github.com/syncthing/syncthing/lib/api/auto)
 
 # Upstream's own build sets these (build.go, ldflags); noupgrade compiles out its self-updater, since droidtop
-# updates the plugin. -s -w keep each library under the installer's 64 MiB per-file cap; 16 KiB pages for Android 15.
+# updates the plugin. -s -w keep each library under the installer's 64 MiB per-file cap; 16 KiB pages for Android 15,
+# and a SONAME, which Go's c-shared link leaves out and Android's linker expects of every library.
 ldflags="-s -w"
 ldflags+=" -X github.com/syncthing/syncthing/lib/build.Version=$SYNCTHING_TAG"
 ldflags+=" -X github.com/syncthing/syncthing/lib/build.Stamp=$stamp"
 ldflags+=" -X github.com/syncthing/syncthing/lib/build.User=droidtop"
 ldflags+=" -X github.com/syncthing/syncthing/lib/build.Host=droidtop-plugin-syncthing"
 ldflags+=" -X github.com/syncthing/syncthing/lib/build.Tags=noupgrade,droidtop"
-ldflags+=" -extldflags=-Wl,-z,max-page-size=16384"
+ldflags+=" -extldflags=-Wl,-z,max-page-size=16384,-soname,libsyncthing.so"
 # github.com/wlynxg/anet, Syncthing's interface lister on Android, reaches into the net package by go:linkname, which
 # Go 1.23 and later refuse unless the check is off (anet's README says the same).
 ldflags+=" -checklinkname=0"
