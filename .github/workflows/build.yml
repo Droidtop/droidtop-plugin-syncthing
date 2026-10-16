@@ -1,0 +1,31 @@
+name: Plugin bundle
+
+# Build, signing and the tag release live once, in Droidtop/droidtop-platforms,
+# pinned by commit (Droidtop/tracker#198). prepare.sh installs the pinned Go
+# toolchain; build.sh builds upstream Syncthing for arm64-v8a and x86_64 and the
+# Kotlin plugin; the sign job runs this repository's sign.sh with
+# PLUGIN_SIGNING_KEY and PLUGIN_SIGNING_CERT. A tag named plugin-v* attaches the
+# signed bundle to that release.
+on:
+  push:
+    branches: [main]
+    tags: ['plugin-v*']
+  pull_request:
+  workflow_dispatch: {}
+
+permissions:
+  contents: read
+
+jobs:
+  bundle:
+    permissions:
+      contents: write
+    uses: Droidtop/droidtop-platforms/.github/workflows/droidtop-plugin-bundle.yml@9abd975af81a20c514be6d0a12492ae827394f9f
+    with:
+      plugin-dir: .
+      artifact-name: droidtop-plugin-syncthing
+      prepare-script: prepare.sh
+      payload: classes.jar lib
+    secrets:
+      PLUGIN_SIGNING_KEY: ${{ secrets.PLUGIN_SIGNING_KEY }}
+      PLUGIN_SIGNING_CERT: ${{ secrets.PLUGIN_SIGNING_CERT }}

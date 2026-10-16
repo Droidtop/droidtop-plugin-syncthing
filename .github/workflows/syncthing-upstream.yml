@@ -1,0 +1,50 @@
+name: Syncthing upstream
+
+# The upstream sync job: once a day, compares syncthing.pin with upstream
+# Syncthing's newest stable release and, when upstream is ahead, opens one issue
+# here asking for the pin to be moved (a new tag, its commit, and the Go version
+# its go.mod names). It never changes the pin itself: a new upstream release is
+# built and checked like any other change.
+on:
+  schedule:
+    - cron: '23 5 * * *'
+  workflow_dispatch: {}
+
+permissions:
+  contents: read
+  issues: write
+
+jobs:
+  check:
+    runs-on: ubuntu-24.04
+    steps:
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4
+        with:
+          persist-credentials: false
+      - name: Compare the pin with upstream's newest release
+        env:
+          GH_TOKEN: ${{ github.token }}
+          GH_REPO: ${{ github.repository }}
+        run: |
+          set -euo pipefail
+          . ./syncthing.pin
+          latest=$(gh api repos/syncthing/syncthing/releases/latest --jq .tag_name)
+          echo "Pinned $SYNCTHING_TAG, upstream's newest release $latest"
+          [[ "$latest" =~ ^v[0-9]+\.[0-9]+\.[0-9]+$ ]] || { echo "::error::unexpected tag '$latest'"; exit 1; }
+          newest=$(printf '%s\n%s\n' "$SYNCTHING_TAG" "$latest" | sort -V | tail -n1)
+          if [ "$latest" = "$SYNCTHING_TAG" ] || [ "$newest" != "$latest" ]; then
+            echo "The pin is current."
+            exit 0
+          fi
+          title="Syncthing $latest is out (pinned: $SYNCTHING_TAG)"
+          if gh issue list --state open --search "in:title \"Syncthing $latest is out\"" --json number --jq '.[].number' | grep -q .; then
+            echo "Already asked: $title"
+            exit 0
+          fi
+          ref=$(gh api "repos/syncthing/syncthing/git/ref/tags/$latest" --jq '.object.sha + " " + .object.type')
+          sha=${ref% *}
+          if [ "${ref#* }" = tag ]; then sha=$(gh api "repos/syncthing/syncthing/git/tags/$sha" --jq .object.sha); fi
+          gomod=$(gh api "repos/syncthing/syncthing/contents/go.mod?ref=$latest" --jq .content | base64 -d | sed -n 's/^go //p' | head -n1)
+          body=$(printf 'Upstream Syncthing released %s; syncthing.pin names %s.\n\nTo move the pin, set in syncthing.pin:\n\n- SYNCTHING_TAG=%s\n- SYNCTHING_COMMIT=%s\n- GO_VERSION: at least %s (upstream go.mod), with its GO_SHA256 from https://go.dev/dl/\n\nThen read upstream'"'"'s release notes (https://github.com/syncthing/syncthing/releases/tag/%s) for changes to lib/syncthing, lib/config and the database, let the bundle build run, and add a CHANGELOG entry.' \
+            "$latest" "$SYNCTHING_TAG" "$latest" "$sha" "$gomod" "$latest")
+          gh issue create --title "$title" --body "$body"

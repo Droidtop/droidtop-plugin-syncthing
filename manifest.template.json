@@ -1,0 +1,29 @@
+{
+  "id": "droidtop.syncthing",
+  "origin": "droidtop",
+  "label": "Syncthing",
+  "summary": "Keeps folders in step across your devices, paired through droidtop",
+  "publisher": "droidtop",
+  "homepage": "https://github.com/Droidtop/droidtop-plugin-syncthing",
+  "category": "tools",
+  "description": "A full Syncthing that syncs folders with the computers and handhelds you paired with droidtop, with no pairing of its own, and with any other Syncthing you add: trusted, or untrusted for an encrypted backup.",
+  "version": "1.0.0",
+  "kind": "native_bundle",
+  "contractVersion": 2,
+  "provides": [
+    {"point": "jobs.service", "version": 1, "id": "syncthing", "label": "Syncthing", "restart": "on_failure"},
+    {"point": "ui.settings", "version": 1, "target": "plugin"}
+  ],
+  "permissions": [
+    {"id": "net.sockets", "required": true, "reason": "Syncthing connects to your other devices and listens for them itself"},
+    {"id": "vault.own", "required": true, "reason": "Keeps this device's Syncthing key and folder passwords sealed"},
+    {"id": "devices.paired", "required": false, "reason": "Syncs with the computers and handhelds you paired with droidtop, with no pairing of its own"}
+  ],
+  "subscribes": [
+    {"event": "devices.changed", "version": 1}
+  ],
+  "subscribedEvents": ["devices.changed"],
+  "requestsRoot": false,
+  "abis": ["arm64-v8a", "x86_64"],
+  "entryClass": "dev.droidtop.plugins.syncthing.SyncthingPlugin"
+}

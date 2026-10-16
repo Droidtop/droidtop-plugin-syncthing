@@ -1,0 +1,27 @@
+droidtop's Syncthing plugin (droidtop.syncthing)
+Copyright (C) 2026 bi0shacker001
+Licensed under the GNU General Public License, version 3 or later (LICENSE).
+
+This plugin's bundle contains Syncthing, built unmodified from its source at
+the tag and commit named in syncthing.pin:
+
+  Syncthing
+  Copyright (C) 2014 The Syncthing Authors
+  https://syncthing.net/
+  Source: https://github.com/syncthing/syncthing (tag in syncthing.pin)
+  Authors: https://github.com/syncthing/syncthing/blob/main/AUTHORS
+
+  Syncthing is subject to the terms of the Mozilla Public License, v. 2.0.
+  If a copy of the MPL was not distributed with this file, you can obtain
+  one at https://mozilla.org/MPL/2.0/.
+
+Syncthing's Source Code Form is available, unchanged, at the repository and tag
+above. build.sh adds this repository's own package (go/droidtopsyncthing,
+GPL-3.0-or-later) beside it as cmd/droidtopsyncthing; no file of Syncthing is
+changed, so every MPL-2.0 file keeps its own terms. MPL-2.0 permits combining
+Syncthing with code under the GPL (MPL-2.0 section 3.3, "Secondary License").
+
+libsyncthing.so also links the Go modules Syncthing's go.mod requires at that
+tag, each under its own license (listed in Syncthing's go.mod; among them
+mattn/go-sqlite3, which embeds the public-domain SQLite), and the Go standard
+library (BSD-3-Clause, Copyright The Go Authors).
