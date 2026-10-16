@@ -48,6 +48,9 @@ mkdir -p build/upstream/cmd/droidtopsyncthing
 cp go/droidtopsyncthing/*.go build/upstream/cmd/droidtopsyncthing/
 stamp=$(git -C build/upstream log -1 --format=%ct)
 go version
+# lib/api compiles in the web page's files, which upstream generates before every build (build.go, rebuildAssets).
+# The page itself stays off (holdOptions in engine.go).
+(cd build/upstream && SOURCE_DATE_EPOCH="$stamp" go generate github.com/syncthing/syncthing/lib/api/auto)
 
 # Upstream's own build sets these (build.go, ldflags); noupgrade compiles out its self-updater, since droidtop
 # updates the plugin. -s -w keep each library under the installer's 64 MiB per-file cap; 16 KiB pages for Android 15.
