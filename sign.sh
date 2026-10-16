@@ -9,7 +9,7 @@ set -euo pipefail
 JWS_DIR="$(cd "$(dirname "$0")" && pwd)"
 cd "$(dirname "$0")"
 
-: "${PLUGIN_SIGNING_KEY:?set to the plugin's EC private key PEM}"
+: "${PLUGIN_SIGNING_KEY:?set to the path of the plugin signing key PEM}"
 : "${BUNDLE_DIR:=build}"
 
 for f in manifest.json classes.jar lib/arm64-v8a/libsyncthing.so lib/x86_64/libsyncthing.so; do
