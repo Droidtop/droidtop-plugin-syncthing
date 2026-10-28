@@ -3,5 +3,5 @@
 SYNCTHING_TAG=v2.1.7
 SYNCTHING_COMMIT=d6d0181f7d466381c4b39ec8fd944c364f939b32
 # The Go toolchain: at least what upstream's go.mod names (go 1.26.2 for v2.1.7).
-GO_VERSION=1.26.2
+GO_VERSION=1.26.9
 GO_SHA256=42d158b4d8f7b61ac0a830567c940a86098fb7aac52e467a5ebec03ef5cc2f8d
