@@ -21,8 +21,12 @@ Syncthing the person adds: a trusted one (an existing library), or an untrusted 
   paired devices change, the service reads droidtop's networks (`net.get_links`), points Go's resolver at their DNS
   servers (the process cannot reach Android's resolver), starts or stops Syncthing by the person's options, and
   accepts the paired devices.
-- **The pages** are droidtop views under Settings (`ui.settings`), drawn by droidtop in every mode. Syncthing's own web
-  page is turned off: it would listen on loopback, where every app on the device could reach it.
+- **What a person sees** are facets (`ui.facets`, contract 3), drawn by droidtop with its own components in every
+  mode: the plugin's page holds the status, when to sync, the folders and devices (each opening a page of its own),
+  the "Add a folder" and "Add a Syncthing device" forms and Syncthing's log; the settings page holds when to sync; the
+  Quick Menu shows whether it is syncing. A folder's encryption password is a `secret`: droidtop shows it on its own
+  sheet, never in a message. Without `devices.paired`, the paired devices group asks for it in place. Syncthing's own
+  web page is turned off: it would listen on loopback, where every app on the device could reach it.
 
 ## Pairing with droidtop's devices
 

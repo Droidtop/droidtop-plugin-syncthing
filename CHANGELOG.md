@@ -6,6 +6,15 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
 ## [Unreleased]
 
+## 1.1.0
+
+### Changed
+- Facets instead of droidtop views (contract 3, `ui.facets` on `plugin.page`, `settings.page` and `quickmenu`,
+  Droidtop/tracker#602). "Add a folder" and "Add a Syncthing device" are form groups, sent as one call each. A
+  folder's encryption password is a `secret` shown on droidtop's own sheet instead of in a message line. The paired
+  devices group asks for `devices.paired` in place (a grant action). The Quick Menu shows whether Syncthing is syncing,
+  with "Look for changes now". Needs a droidtop with the facet additions of 2026-10-29.
+
 ## 1.0.0
 
 ### Added

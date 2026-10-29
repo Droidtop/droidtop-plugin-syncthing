@@ -23,7 +23,8 @@ import org.json.JSONObject
  *
  * It runs in an open process with the `net.sockets` hole only (docs/plugin-api.md 5.3, "Open processes"): its own
  * internet sockets and nothing else extra. Syncthing itself is a background service (`jobs.service`, E8) that droidtop
- * starts and stops; the pages under Settings (`ui.settings`) are drawn by droidtop from the views in [SyncthingViews].
+ * starts and stops; what a person sees of it are facets (`ui.facets`, docs/plugin-api.md 1.10) from [SyncthingFacets],
+ * drawn by droidtop on the plugin's page, its settings page and the Quick Menu.
  */
 class SyncthingPlugin : DroidtopPlugin {
     private lateinit var context: PluginContext
@@ -44,7 +45,7 @@ class SyncthingPlugin : DroidtopPlugin {
         PluginResult.failure("droidtop's Syncthing has no ${capability.id}")
 
     override fun handle(call: PluginCall): PluginReply = when (call.point) {
-        POINT_SETTINGS -> try {
+        POINT_FACETS -> try {
             page(call)
         } catch (e: SyncthingException) {
             PluginReply.failed(PluginErrorCode.FAILED, "Syncthing could not do that.", e.message)
@@ -192,67 +193,67 @@ class SyncthingPlugin : DroidtopPlugin {
         val args = call.args
         val values = args.optJSONObject("values") ?: JSONObject()
         return when (call.op) {
-            "view" -> PluginReply.ok(SyncthingViews.main(model()))
-            SyncthingViews.OP_FOLDER -> withState { SyncthingViews.folder(it, engine.settings.read(), args.optString("id")) }
-            SyncthingViews.OP_DEVICE -> withState { SyncthingViews.device(it, args.optString("id")) }
-            SyncthingViews.OP_ADD_FOLDER_PAGE -> PluginReply.ok(SyncthingViews.addFolder())
-            SyncthingViews.OP_ADD_DEVICE_PAGE -> PluginReply.ok(SyncthingViews.addDevice())
-            SyncthingViews.OP_LOG -> {
+            SyncthingFacets.OP_GET -> PluginReply.ok(SyncthingFacets.forTarget(args.optString("target"), model()))
+            SyncthingFacets.OP_FOLDER -> withState { SyncthingFacets.folder(it, engine.settings.read(), args.optString("id")) }
+            SyncthingFacets.OP_DEVICE -> withState { SyncthingFacets.device(it, args.optString("id")) }
+            SyncthingFacets.OP_LOG -> {
                 val text = runCatching { engine.ready(); SyncthingNative.op("read_log", JSONObject().put("bytes", 16384)).optString("text") }.getOrDefault("")
-                PluginReply.ok(SyncthingViews.log(text))
+                PluginReply.ok(SyncthingFacets.log(text))
             }
-            SyncthingViews.OP_SAVE -> save(values)
-            SyncthingViews.OP_SCAN -> {
+            SyncthingFacets.OP_SAVE -> save(values)
+            SyncthingFacets.OP_SCAN -> {
                 engine.ready()
                 SyncthingNative.op("scan")
                 message("Looking for changes in every folder")
             }
-            SyncthingViews.OP_ADD_FOLDER -> addFolder(values)
-            SyncthingViews.OP_REMOVE_FOLDER -> {
+            SyncthingFacets.OP_ADD_FOLDER -> addFolder(values)
+            SyncthingFacets.OP_REMOVE_FOLDER -> {
                 engine.ready()
                 val id = args.optString("id")
                 SyncthingNative.op("delete_folder", JSONObject().put("id", id))
                 engine.settings.update { it.copy(sharedWithPaired = it.sharedWithPaired - id) }
                 message("No longer synced. Its files stay here.")
             }
-            SyncthingViews.OP_SHARE_PAIRED -> sharePaired(args.optString("id"), values.optString(SyncthingViews.IN_FOLDER_PAIRED) == "true")
-            SyncthingViews.OP_SHARE -> share(args.optString("id"), args.optString("device"), values.optString(args.optString("input")) == "true")
-            SyncthingViews.OP_ADD_DEVICE -> addDevice(values)
-            SyncthingViews.OP_REMOVE_DEVICE -> {
+            // A switch sends its own new state as `args.value` (docs/plugin-api.md 1.10, "Interaction").
+            SyncthingFacets.OP_SHARE_PAIRED -> sharePaired(args.optString("id"), args.optBoolean("value"))
+            SyncthingFacets.OP_SHARE -> share(args.optString("id"), args.optString("device"), args.optBoolean("value"))
+            SyncthingFacets.OP_ADD_DEVICE -> addDevice(values)
+            SyncthingFacets.OP_REMOVE_DEVICE -> {
                 engine.ready()
                 SyncthingNative.op("delete_device", JSONObject().put("id", args.optString("id")))
                 message("Removed")
             }
-            SyncthingViews.OP_ACCEPT_FOLDER -> {
+            SyncthingFacets.OP_ACCEPT_FOLDER -> {
                 engine.ready()
                 val state = engine.state()
                 val label = args.optString("label").ifBlank { args.optString("id") }
                 engine.putFolder(args.optString("id"), label, setOf(args.optString("device")), engine.untrustedIds(state))
                 message("Syncing $label")
             }
-            SyncthingViews.OP_SHOW_PASSWORD -> {
+            // A secret facet's Show: droidtop puts the value on its own sheet and never keeps it.
+            SyncthingFacets.OP_SHOW_PASSWORD -> {
                 engine.ready()
-                message("Encryption password: ${engine.folderPassword(args.optString("id"))}")
+                PluginReply.ok(JSONObject().put("value", engine.folderPassword(args.optString("id"))))
             }
             else -> PluginReply.error(PluginErrorCode.UNSUPPORTED, "Unknown page action: ${call.op}")
         }
     }
 
-    private fun model(): SyncthingViews.Model {
+    private fun model(): SyncthingFacets.Model {
         val problem = engine.problem
         val state = try {
             engine.ready()
             engine.state()
         } catch (e: LinkageError) {
-            return SyncthingViews.Model(JSONObject(), engine.settings.read(), engine.waitingFor, engine.serviceOn, engine.charging(), engine.paired, engine.pairingProblem, "Syncthing could not be loaded on this device: ${e.message}")
+            return SyncthingFacets.Model(JSONObject(), engine.settings.read(), engine.waitingFor, engine.serviceOn, engine.charging(), engine.paired, engine.pairingProblem, "Syncthing could not be loaded on this device: ${e.message}")
         } catch (e: Exception) {
-            return SyncthingViews.Model(JSONObject(), engine.settings.read(), engine.waitingFor, engine.serviceOn, engine.charging(), engine.paired, engine.pairingProblem, e.message ?: problem)
+            return SyncthingFacets.Model(JSONObject(), engine.settings.read(), engine.waitingFor, engine.serviceOn, engine.charging(), engine.paired, engine.pairingProblem, e.message ?: problem)
         }
         if (!engine.serviceOn) {
             // Without the service nothing has read the paired devices in this process yet; the page still lists them.
             runCatching { engine.reconcile(runCatching { engine.host("net", "get_links") }.getOrNull()) }
         }
-        return SyncthingViews.Model(state, engine.settings.read(), engine.waitingFor, engine.serviceOn, engine.charging(), engine.paired, engine.pairingProblem, problem)
+        return SyncthingFacets.Model(state, engine.settings.read(), engine.waitingFor, engine.serviceOn, engine.charging(), engine.paired, engine.pairingProblem, problem)
     }
 
     private fun withState(build: (JSONObject) -> JSONObject): PluginReply {
@@ -269,9 +270,10 @@ class SyncthingPlugin : DroidtopPlugin {
         val before = engine.settings.read()
         val after = engine.settings.update {
             it.copy(
-                wifiOnly = flag(SyncthingViews.IN_WIFI_ONLY, it.wifiOnly),
-                chargingOnly = flag(SyncthingViews.IN_CHARGING_ONLY, it.chargingOnly),
-                rescanMinutes = values.optString(SyncthingViews.IN_RESCAN).toIntOrNull()
+                wifiOnly = flag(SyncthingFacets.IN_WIFI_ONLY, it.wifiOnly),
+                chargingOnly = flag(SyncthingFacets.IN_CHARGING_ONLY, it.chargingOnly),
+                // A slider's value may come as "15" or as 15.0.
+                rescanMinutes = values.optString(SyncthingFacets.IN_RESCAN).toDoubleOrNull()?.toInt()
                     ?.coerceIn(SyncthingSettings.MIN_RESCAN_MINUTES, SyncthingSettings.MAX_RESCAN_MINUTES) ?: it.rescanMinutes,
             )
         }
@@ -284,9 +286,9 @@ class SyncthingPlugin : DroidtopPlugin {
     }
 
     private fun addFolder(values: JSONObject): PluginReply {
-        val name = values.optString(SyncthingViews.IN_FOLDER_NAME).trim()
+        val name = values.optString(SyncthingFacets.IN_FOLDER_NAME).trim()
         if (name.isEmpty()) return PluginReply.error(PluginErrorCode.INVALID_ARGS, "Give the folder a name")
-        val withPaired = values.optString(SyncthingViews.IN_FOLDER_PAIRED, "true") != "false"
+        val withPaired = values.optString(SyncthingFacets.IN_FOLDER_PAIRED, "true") != "false"
         engine.ready()
         val state = engine.state()
         val known = state.optJSONArray("devices").objects().map { it.optString("id") }.toSet()
@@ -320,10 +322,10 @@ class SyncthingPlugin : DroidtopPlugin {
     }
 
     private fun addDevice(values: JSONObject): PluginReply {
-        val id = values.optString(SyncthingViews.IN_DEVICE_ID).trim().uppercase()
+        val id = values.optString(SyncthingFacets.IN_DEVICE_ID).trim().uppercase()
         if (id.isEmpty()) return PluginReply.error(PluginErrorCode.INVALID_ARGS, "Enter the device's Syncthing ID")
-        val name = values.optString(SyncthingViews.IN_DEVICE_NAME).trim().ifBlank { "Syncthing device" }
-        val untrusted = values.optString(SyncthingViews.IN_DEVICE_TRUST, SyncthingViews.TRUST_UNTRUSTED) != SyncthingViews.TRUST_TRUSTED
+        val name = values.optString(SyncthingFacets.IN_DEVICE_NAME).trim().ifBlank { "Syncthing device" }
+        val untrusted = values.optString(SyncthingFacets.IN_DEVICE_TRUST, SyncthingFacets.TRUST_UNTRUSTED) != SyncthingFacets.TRUST_TRUSTED
         engine.ready()
         try {
             SyncthingNative.op(
@@ -347,7 +349,7 @@ class SyncthingPlugin : DroidtopPlugin {
     private fun message(text: String): PluginReply = PluginReply.ok(JSONObject().put("message", text))
 
     companion object {
-        private const val POINT_SETTINGS = "ui.settings"
+        private const val POINT_FACETS = "ui.facets"
         private const val POINT_SERVICE = "jobs.service"
         const val SERVICE_ID = "syncthing"
         private const val POLL_MS = 30_000L
