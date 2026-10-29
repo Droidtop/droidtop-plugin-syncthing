@@ -20,7 +20,7 @@ jobs:
   bundle:
     permissions:
       contents: write
-    uses: Droidtop/droidtop-platforms/.github/workflows/droidtop-plugin-bundle.yml@9abd975af81a20c514be6d0a12492ae827394f9f
+    uses: Droidtop/droidtop-platforms/.github/workflows/droidtop-plugin-bundle.yml@13186bed5850d705bdb05e36c94e23c013530e16
     with:
       plugin-dir: .
       artifact-name: droidtop-plugin-syncthing
