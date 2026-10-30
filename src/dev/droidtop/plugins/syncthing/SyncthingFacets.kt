@@ -36,6 +36,7 @@ internal object SyncthingFacets {
     const val IN_RESCAN = "rescan_minutes"
     const val IN_FOLDER_NAME = "folder_name"
     const val IN_FOLDER_PAIRED = "folder_paired"
+    const val IN_FOLDER_PATH = "folder_path"
     const val IN_DEVICE_ID = "device_id"
     const val IN_DEVICE_NAME = "device_name"
     const val IN_DEVICE_TRUST = "device_trust"
@@ -210,8 +211,10 @@ internal object SyncthingFacets {
     /** "Add a folder": a form, so the name and the paired switch go together with Add, as one call. */
     fun addFolderForm(target: String): JSONObject = form(
         "add_folder", target, "Add a folder",
-        submit("Add", "It is kept in this plugin's own storage", call(OP_ADD_FOLDER)),
+        submit("Add", "With no folder given, it is kept in this plugin's own storage", call(OP_ADD_FOLDER)),
         facet(IN_FOLDER_NAME, "input", null).put("label", "Name").put("hint", "Shown on every device it syncs with").put("value", ""),
+        facet(IN_FOLDER_PATH, "input", null).put("label", "Folder on this device").put("optional", true).put("value", "")
+            .put("hint", "Synced in place, such as /storage/emulated/0/Saves. Needs shared storage"),
         facet(IN_FOLDER_PAIRED, "toggle", null).put("label", "Share with my paired devices").put("value", true),
     )
 

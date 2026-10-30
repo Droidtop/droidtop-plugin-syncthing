@@ -6,6 +6,14 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
 ## [Unreleased]
 
+## 1.2.0
+
+### Added
+- A folder anywhere on shared storage, synced in place (Droidtop/tracker#553): "Add a folder" takes "Folder on this
+  device", such as `/storage/emulated/0/Saves` or a folder on the SD card. The plugin asks for `files.shared.write`
+  (optional), and droidtop's broker opens exactly what that grant covers to Syncthing's process, never `Android/data`
+  or `Android/obb`. With no folder given, it is kept in the plugin's own storage as before.
+
 ## 1.1.0
 
 ### Changed

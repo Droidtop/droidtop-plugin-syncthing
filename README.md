@@ -59,8 +59,9 @@ with that folder's own password, made once and kept in the plugin's vault; the f
 
 ## Limits of this version
 
-- Folders live in the plugin's own storage. droidtop's broker does not yet open shared storage to an open process, so
-  a folder elsewhere (a game folder, a ROM library) needs droidtop to map `files.shared` paths for it first.
+- A folder elsewhere on the device (a game folder, a ROM library, saves) needs `files.shared.write`. droidtop's broker
+  then opens it to Syncthing's process by path, and Syncthing syncs it in place. Without the grant, folders live in the
+  plugin's own storage.
 - No inotify: changes are found by the rescan interval or "Look for changes now".
 - No list of devices that ask to connect: another Syncthing is added by its ID.
 

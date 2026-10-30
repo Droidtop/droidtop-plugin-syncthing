@@ -289,12 +289,14 @@ class SyncthingPlugin : DroidtopPlugin {
         val name = values.optString(SyncthingFacets.IN_FOLDER_NAME).trim()
         if (name.isEmpty()) return PluginReply.error(PluginErrorCode.INVALID_ARGS, "Give the folder a name")
         val withPaired = values.optString(SyncthingFacets.IN_FOLDER_PAIRED, "true") != "false"
+        val given = values.optString(SyncthingFacets.IN_FOLDER_PATH).trim()
+        val path = if (given.isEmpty()) null else sharedFolder(given) ?: return PluginReply.error(PluginErrorCode.INVALID_ARGS, PATH_REFUSED)
         engine.ready()
         val state = engine.state()
         val known = state.optJSONArray("devices").objects().map { it.optString("id") }.toSet()
         val id = newFolderId()
         val devices = if (withPaired) engine.settings.read().pairedIds.intersect(known) else emptySet()
-        engine.putFolder(id, name, devices, engine.untrustedIds(state))
+        engine.putFolder(id, name, devices, engine.untrustedIds(state), path)
         if (withPaired) engine.settings.update { it.copy(sharedWithPaired = it.sharedWithPaired + id) }
         return message("Added $name")
     }
@@ -349,6 +351,27 @@ class SyncthingPlugin : DroidtopPlugin {
     private fun message(text: String): PluginReply = PluginReply.ok(JSONObject().put("message", text))
 
     companion object {
+        const val PATH_REFUSED = "Give a folder inside shared storage, such as /storage/emulated/0/Saves, outside Android/data and Android/obb"
+
+        /**
+         * [given] as a folder Syncthing may keep in place, or null: an absolute path below a storage volume's root
+         * (`/storage/emulated/<user>/…` or `/storage/<volume>/…`), never the root itself, never `..`, and never under the
+         * volume's `Android` folder, which droidtop's broker keeps out of an open process (docs/plugin-api.md 5.3,
+         * "Shared folders by path"). The broker decides the rest: a folder the grant does not cover shows as Syncthing's
+         * own folder error.
+         */
+        fun sharedFolder(given: String): String? {
+            if (!given.startsWith("/storage/")) return null
+            val parts = given.split('/').filter { it.isNotEmpty() }
+            if (parts.any { it == "." || it == ".." }) return null
+            // storage, then the volume: "emulated/<user>" for the primary one, one name for a card.
+            val volume = if (parts.getOrNull(1) == "emulated") 3 else 2
+            val inside = parts.drop(volume)
+            if (parts.size < volume || inside.isEmpty()) return null
+            if (inside.first().equals("Android", ignoreCase = true)) return null
+            return "/" + parts.joinToString("/")
+        }
+
         private const val POINT_FACETS = "ui.facets"
         private const val POINT_SERVICE = "jobs.service"
         const val SERVICE_ID = "syncthing"
