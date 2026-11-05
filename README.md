@@ -74,3 +74,10 @@ to its release. `.github/workflows/syncthing-upstream.yml` checks upstream's new
 issue when the pin is behind.
 
 Upstream Syncthing is MPL-2.0; see `NOTICE`. This repository's own code is GPL-3.0-or-later.
+
+## Branches
+
+The owner, 2026-11-05: "ALL plugins should keep the recipe on plugin-core, overlaid onto the release branch when
+needed. That's our standard operation." This plugin has no upstream project, so its one branch is **`plugin-core`**
+(the default branch): the whole recipe. Every change lands on it through a `ci/` branch, and releases are built
+from it. There is no `main` or `master`.

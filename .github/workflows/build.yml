@@ -8,7 +8,7 @@ name: Plugin bundle
 # signed bundle to that release.
 on:
   push:
-    branches: [main]
+    branches: [plugin-core]
     tags: ['plugin-v*']
   pull_request:
   workflow_dispatch: {}
