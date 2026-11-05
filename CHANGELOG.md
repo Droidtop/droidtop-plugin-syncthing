@@ -6,6 +6,10 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
 ## [Unreleased]
 
+### Changed
+
+- "Sync only while charging" reads droidtop's battery state (`power.get_state`, permission `power.state`) instead of the kernel's power supply files, so it works where those are hidden, and sync also waits while Battery Saver is on and nothing charges (Droidtop/tracker#762).
+
 ## 1.2.0
 
 ### Added

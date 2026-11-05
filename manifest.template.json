@@ -18,7 +18,8 @@
     {"id": "net.sockets", "required": true, "reason": "Syncthing connects to your other devices and listens for them itself"},
     {"id": "vault.own", "required": true, "reason": "Keeps this device's Syncthing key and folder passwords sealed"},
     {"id": "files.shared.write", "required": false, "paths": ["*"], "reason": "Syncs a folder you choose on this device in place: saves, ROMs, games"},
-    {"id": "devices.paired", "required": false, "reason": "Syncs with the computers and handhelds you paired with droidtop, with no pairing of its own"}
+    {"id": "devices.paired", "required": false, "reason": "Syncs with the computers and handhelds you paired with droidtop, with no pairing of its own"},
+    {"id": "power.state", "required": false, "reason": "Waits for the charger when you ask it to, and while Battery Saver is on"}
   ],
   "subscribes": [
     {"event": "devices.changed", "version": 1}

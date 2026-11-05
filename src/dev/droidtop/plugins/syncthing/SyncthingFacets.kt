@@ -51,7 +51,6 @@ internal object SyncthingFacets {
         val settings: SyncthingSettings,
         val waitingFor: String?,
         val serviceOn: Boolean,
-        val charging: Boolean?,
         val paired: List<SyncthingEngine.PairedDevice>,
         val pairingProblem: String?,
         val problem: String?,
@@ -117,8 +116,7 @@ internal object SyncthingFacets {
         "when", target, "When to sync",
         toggle(IN_WIFI_ONLY, "Sync only on Wi-Fi", "Or Ethernet. Mobile data is never used.", m.settings.wifiOnly, call(OP_SAVE)),
         toggle(
-            IN_CHARGING_ONLY, "Sync only while charging",
-            if (m.charging == null) "This handheld does not tell droidtop when it charges, so this has no effect." else null,
+            IN_CHARGING_ONLY, "Sync only while charging", null,
             m.settings.chargingOnly, call(OP_SAVE),
         ),
         facet(IN_RESCAN, "slider", null)

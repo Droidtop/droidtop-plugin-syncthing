@@ -101,7 +101,10 @@ internal class SyncthingEngine(private val context: PluginContext) {
     /** Null when sync may run now; otherwise what it waits for. */
     fun gate(links: JSONObject?, chosen: SyncthingSettings): String? {
         if (chosen.wifiOnly && !onLan(links)) return "Waiting for Wi-Fi"
-        if (chosen.chargingOnly && charging() == false) return "Waiting for the charger"
+        val power = power()
+        if (chosen.chargingOnly && power?.charging == false) return "Waiting for the charger"
+        // Battery Saver asks apps to hold back background work; syncing while it is on and nothing charges ignored it.
+        if (power != null && power.saver && !power.charging) return "Waiting: Battery Saver is on"
         return null
     }
 
@@ -117,23 +120,16 @@ internal class SyncthingEngine(private val context: PluginContext) {
         }
     }
 
-    /**
-     * Whether the handheld charges, from the kernel's power supply files; null when this device does not let droidtop
-     * read them (then "Only while charging" cannot be kept, and the page says so). droidtop has no battery API for
-     * plugins yet (docs/plugin-api.md D7); when it does, that replaces this.
-     */
-    fun charging(): Boolean? {
-        readLine("/sys/class/power_supply/battery/status")?.let { return it.equals("Charging", true) || it.equals("Full", true) }
-        var known = false
-        for (supply in listOf("ac", "usb", "wireless", "dock")) {
-            val online = readLine("/sys/class/power_supply/$supply/online") ?: continue
-            known = true
-            if (online == "1") return true
-        }
-        return if (known) false else null
-    }
+    /** Whether the handheld charges and whether Battery Saver is on, as droidtop reads them. */
+    data class Power(val charging: Boolean, val saver: Boolean)
 
-    private fun readLine(path: String): String? = runCatching { File(path).readText().trim() }.getOrNull()?.ifBlank { null }
+    /**
+     * droidtop's `power.get_state` (docs/plugin-api.md D7, permission `power.state`), from Android's battery broadcast
+     * and Battery Saver (Droidtop/tracker#762: this used to read /sys/class/power_supply, which a contained plugin may
+     * not see). Null only when droidtop does not answer, and then nothing waits on it.
+     */
+    fun power(): Power? = runCatching { host("power", "get_state") }.getOrNull()
+        ?.let { Power(charging = it.optBoolean("charging", false), saver = it.optBoolean("saver", false)) }
 
     // -----------------------------------------------------------------
     // Pairing through droidtop

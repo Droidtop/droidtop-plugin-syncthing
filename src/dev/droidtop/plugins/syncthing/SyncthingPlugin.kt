@@ -245,15 +245,15 @@ class SyncthingPlugin : DroidtopPlugin {
             engine.ready()
             engine.state()
         } catch (e: LinkageError) {
-            return SyncthingFacets.Model(JSONObject(), engine.settings.read(), engine.waitingFor, engine.serviceOn, engine.charging(), engine.paired, engine.pairingProblem, "Syncthing could not be loaded on this device: ${e.message}")
+            return SyncthingFacets.Model(JSONObject(), engine.settings.read(), engine.waitingFor, engine.serviceOn, engine.paired, engine.pairingProblem, "Syncthing could not be loaded on this device: ${e.message}")
         } catch (e: Exception) {
-            return SyncthingFacets.Model(JSONObject(), engine.settings.read(), engine.waitingFor, engine.serviceOn, engine.charging(), engine.paired, engine.pairingProblem, e.message ?: problem)
+            return SyncthingFacets.Model(JSONObject(), engine.settings.read(), engine.waitingFor, engine.serviceOn, engine.paired, engine.pairingProblem, e.message ?: problem)
         }
         if (!engine.serviceOn) {
             // Without the service nothing has read the paired devices in this process yet; the page still lists them.
             runCatching { engine.reconcile(runCatching { engine.host("net", "get_links") }.getOrNull()) }
         }
-        return SyncthingFacets.Model(state, engine.settings.read(), engine.waitingFor, engine.serviceOn, engine.charging(), engine.paired, engine.pairingProblem, problem)
+        return SyncthingFacets.Model(state, engine.settings.read(), engine.waitingFor, engine.serviceOn, engine.paired, engine.pairingProblem, problem)
     }
 
     private fun withState(build: (JSONObject) -> JSONObject): PluginReply {
