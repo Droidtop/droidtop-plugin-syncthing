@@ -1,0 +1,24 @@
+# Dispatch-only: re-signs this repository's published plugin bundle releases in place under the new
+# signing key (rotation 2026-11-04, Droidtop/tracker#876). The logic lives in one reusable workflow.
+name: Re-sign releases (key rotation)
+
+on:
+  workflow_dispatch:
+    inputs:
+      tags:
+        description: 'Release tags separated by commas, or all'
+        default: all
+
+permissions:
+  contents: write
+
+jobs:
+  resign:
+    uses: Droidtop/droidtop-components/.github/workflows/resign-bundles.yml@ci/resign-rekey
+    with:
+      tags: ${{ inputs.tags }}
+      root: droidtop
+      key_json: ''
+    secrets:
+      PLUGIN_SIGNING_KEY: ${{ secrets.PLUGIN_SIGNING_KEY }}
+      PLUGIN_SIGNING_CERT: ${{ secrets.PLUGIN_SIGNING_CERT }}
