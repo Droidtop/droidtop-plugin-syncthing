@@ -51,7 +51,7 @@ droidtop-agent and Pythia's Syncthing modules announce the same shape under the 
 | Option | Default | |
 | --- | --- | --- |
 | Sync only on Wi-Fi | on | Wi-Fi or Ethernet (or a VPN over one); Syncthing is stopped on mobile data. |
-| Sync only while charging | off | Read from the kernel's power supply files, since droidtop has no battery API for plugins yet (D7). Where they cannot be read, the page says the option has no effect. |
+| Sync only while charging | off | From droidtop's `power.get_state` (D7, permission `power.state`). Sync also waits while Battery Saver is on and the handheld isn't charging. |
 | Look for changes every | 5 minutes | The sandbox refuses inotify, so folders are rescanned instead of watched. |
 
 Other Syncthing devices are added by ID, untrusted by default. An untrusted device gets each shared folder encrypted
