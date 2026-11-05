@@ -3,6 +3,11 @@
 name: Re-sign releases (key rotation)
 
 on:
+  # Only so GitHub registers this dispatch-only workflow, which it does on a workflow's first
+  # event; a push run does nothing (the job is skipped).
+  push:
+    branches: [ci/resign-rekey]
+    paths: [.github/workflows/resign-rekey.yml]
   workflow_dispatch:
     inputs:
       tags:
@@ -14,6 +19,7 @@ permissions:
 
 jobs:
   resign:
+    if: github.event_name == 'workflow_dispatch'
     uses: Droidtop/droidtop-components/.github/workflows/resign-bundles.yml@ci/resign-rekey
     with:
       tags: ${{ inputs.tags }}
