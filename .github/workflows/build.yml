@@ -6,11 +6,12 @@ name: Plugin bundle
 # Kotlin plugin; the sign job runs this repository's sign.sh with
 # PLUGIN_SIGNING_KEY and PLUGIN_SIGNING_CERT. A tag named plugin-v* attaches the
 # signed bundle to that release.
+# The bundle is built from a line (plugin/<line>: creation with plugin-core written over it), never from
+# plugin-core alone, which holds only the wrapper.
 on:
   push:
-    branches: [main]
+    branches: ['plugin/**']
     tags: ['plugin-v*']
-  pull_request:
   workflow_dispatch: {}
 
 permissions:

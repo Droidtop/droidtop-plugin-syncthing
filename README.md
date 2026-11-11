@@ -74,3 +74,18 @@ to its release. `.github/workflows/syncthing-upstream.yml` checks upstream's new
 issue when the pin is behind.
 
 Upstream Syncthing is MPL-2.0; see `NOTICE`. This repository's own code is GPL-3.0-or-later.
+
+## Branches
+
+The owner, 2026-11-10: "Just like with the enginehost cores, the plugin-core branch is the wrapper code that makes
+it a plugin, we have a branch for the actual core code, and releases are a blending of both."
+
+- **`plugin-core`** (this branch, the default): the wrapper (the plugin host glue, build, signing, manifest,
+  changelog) and each line's pin in `plugin-line/lines/<line>/line.json`.
+- **`creation`**: the core code and its tests.
+- **`plugin/stable`**: `creation` at the pinned commit with `plugin-core` written over it, composed by
+  Droidtop/droidtop-platforms `tools/plugin_line.py` and checked by `plugin-line.yml`. The bundle and releases
+  are built from it; nothing is authored there.
+
+Every change lands on `creation` or `plugin-core` through a `ci/` branch, and the line is recomposed. There is no
+`main`.
