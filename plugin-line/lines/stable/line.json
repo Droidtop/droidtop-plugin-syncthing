@@ -2,7 +2,7 @@
   "upstream": {
     "repo": "Droidtop/droidtop-plugin-syncthing",
     "ref": "creation",
-    "commit": "33c06554981351330812c57942482beaa611708f"
+    "commit": "3cc0d6ce0215df2f281f662a1e9e0abcbbd175fb"
   },
   "version": "0",
   "sharedPatches": false
