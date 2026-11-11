@@ -1,0 +1,31 @@
+{
+  "id": "droidtop.syncthing",
+  "origin": "droidtop",
+  "label": "Syncthing",
+  "summary": "Keeps folders in step across your devices, paired through droidtop",
+  "publisher": "droidtop",
+  "homepage": "https://github.com/Droidtop/droidtop-plugin-syncthing",
+  "category": "tools",
+  "description": "A full Syncthing that syncs folders with the computers and handhelds you paired with droidtop, with no pairing of its own, and with any other Syncthing you add: trusted, or untrusted for an encrypted backup.",
+  "version": "1.2.0",
+  "kind": "native_bundle",
+  "contractVersion": 3,
+  "provides": [
+    {"point": "jobs.service", "version": 1, "id": "syncthing", "label": "Syncthing", "restart": "on_failure"},
+    {"point": "ui.facets", "version": 1, "id": "syncthing", "targets": ["plugin.page", "settings.page", "quickmenu"]}
+  ],
+  "permissions": [
+    {"id": "net.sockets", "required": true, "reason": "Syncthing connects to your other devices and listens for them itself"},
+    {"id": "vault.own", "required": true, "reason": "Keeps this device's Syncthing key and folder passwords sealed"},
+    {"id": "files.shared.write", "required": false, "paths": ["*"], "reason": "Syncs a folder you choose on this device in place: saves, ROMs, games"},
+    {"id": "devices.paired", "required": false, "reason": "Syncs with the computers and handhelds you paired with droidtop, with no pairing of its own"},
+    {"id": "power.state", "required": false, "reason": "Waits for the charger when you ask it to, and while Battery Saver is on"}
+  ],
+  "subscribes": [
+    {"event": "devices.changed", "version": 1}
+  ],
+  "subscribedEvents": ["devices.changed"],
+  "requestsRoot": false,
+  "abis": ["arm64-v8a", "x86_64"],
+  "entryClass": "dev.droidtop.plugins.syncthing.SyncthingPlugin"
+}

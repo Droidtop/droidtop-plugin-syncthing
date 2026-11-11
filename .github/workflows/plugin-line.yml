@@ -1,0 +1,18 @@
+name: Plugin line
+
+# plugin/<line> is exactly creation's pinned commit with plugin-core written over it (README "Branches"). This
+# rebuilds that composition on every push to plugin-core or a line, and fails on any difference: a wrapper change
+# made on a line instead of on plugin-core. The tool lives once, in Droidtop/droidtop-platforms, pinned by commit.
+on:
+  push:
+    branches: [plugin-core, 'plugin/**']
+  workflow_dispatch: {}
+
+permissions:
+  contents: read
+
+jobs:
+  line:
+    uses: Droidtop/droidtop-platforms/.github/workflows/plugin-line-check.yml@a4c505977c3661297b42806dac8c6306e61a53bf
+    with:
+      tool-ref: a4c505977c3661297b42806dac8c6306e61a53bf
