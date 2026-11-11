@@ -20,6 +20,8 @@ jobs:
     steps:
       - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4
         with:
+          # The pin is core code, on creation (README "Branches"); this scheduled job lives on the default branch.
+          ref: creation
           persist-credentials: false
       - name: Compare the pin with upstream's newest release
         env:
