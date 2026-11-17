@@ -1,0 +1,21 @@
+name: Template drift
+
+# This repository's copies of Droidtop/droidtop-plugin-template's tools are the template's own at the tag pinned below
+# (Droidtop/tracker#946). The check lives once, in Droidtop/droidtop-platforms, pinned by commit. A fix to a copy is
+# made in the template, tagged, and this pin moved.
+on:
+  push:
+    branches: [plugin-core, 'ci/**']
+  pull_request:
+  workflow_dispatch: {}
+
+permissions:
+  contents: read
+
+jobs:
+  drift:
+    uses: Droidtop/droidtop-platforms/.github/workflows/plugin-template-drift.yml@b3fd1d13dca24433f33eeadf632dfb0dcf53ef85
+    with:
+      template-ref: tools-v1
+      files: |
+        sign_jws.py tools/sign_jws.py
